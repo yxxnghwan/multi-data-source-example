@@ -25,12 +25,14 @@ import javax.sql.DataSource
 )
 class MysqlDataSourceConfig {
 
+    @Primary
     @Bean("mysqlDataSource")
     @ConfigurationProperties(prefix = "spring.datasource.mysql")
     fun dataSource(): DataSource {
         return DataSourceBuilder.create().build()
     }
 
+    @Primary
     @Bean("mysqlEntityManagerFactory")
     fun entityManagerFactory(
         @Qualifier("mysqlDataSource") dataSource: DataSource,
@@ -42,6 +44,7 @@ class MysqlDataSourceConfig {
         return em.`object`!!
     }
 
+    @Primary
     @Bean("mysqlTransactionManager")
     fun transactionManager(
         @Qualifier("mysqlEntityManagerFactory") entityManagerFactory: EntityManagerFactory,
