@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # MySQL 컨테이너
+  mysql:
+    image: mysql:latest
+    restart: always
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: example
+      MYSQL_USER: exmaple_user
+      MYSQL_PASSWORD: example_password
+    ports:
+      - "53306:3306"  # 호스트와 컨테이너 간의 포트 매핑
+    volumes:
+      - ./db/mysql/init:/docker-entrypoint-initdb.d
+
+  # PostgreSQL 컨테이너
+  postgresql:
+    image: postgres:latest
+    restart: always
+    container_name: postgresql
+    environment:
+      POSTGRES_USER: example_user
+      POSTGRES_PASSWORD: example_password
+      POSTGRES_DB: example
+    ports:
+      - "55432:5432"  # 호스트와 컨테이너 간의 포트 매핑
+    volumes:
+      - ./db/postgresql/init:/docker-entrypoint-initdb.d
