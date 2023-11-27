@@ -1,12 +1,17 @@
 spring:
   datasource:
     postgresql:
+      dialect: org.hibernate.dialect.PostgreSQLDialect
       url: jdbc:postgresql://localhost:55432/example
       username: example_user
       password: example_password
       driver-class-name: org.postgresql.Driver
     mysql:
+      dialect: org.hibernate.dialect.MySQL8Dialect
       url: jdbc:mysql://localhost:53306/example
-      username: example_user
-      password: example_password
+      username: root
+      password: root
       driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none

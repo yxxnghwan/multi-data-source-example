@@ -3,8 +3,10 @@ package com.example.multidatasourceexample.config
 import jakarta.persistence.EntityManagerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.jdbc.DataSourceBuilder
+import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
@@ -26,29 +28,39 @@ import javax.sql.DataSource
 class MysqlDataSourceConfig {
 
     @Primary
-    @Bean("mysqlDataSource")
+    @Bean("mysqlDataSourceProperties")
     @ConfigurationProperties(prefix = "spring.datasource.mysql")
+    fun mysqlDataSourceProperties(): DataSourceProperties {
+        return DataSourceProperties()
+    }
+
+    @Primary
+    @Bean("mysqlDataSource")
     fun dataSource(): DataSource {
-        return DataSourceBuilder.create().build()
+        return mysqlDataSourceProperties().initializeDataSourceBuilder().build()
     }
 
     @Primary
     @Bean("mysqlEntityManagerFactory")
     fun entityManagerFactory(
         @Qualifier("mysqlDataSource") dataSource: DataSource,
-    ): EntityManagerFactory {
-        val em = LocalContainerEntityManagerFactoryBean()
-        em.dataSource = dataSource
-        em.setPackagesToScan("com.example.multidatasourceexample.domain.mysql")
-        em.jpaVendorAdapter = HibernateJpaVendorAdapter()
-        return em.`object`!!
+        builder: EntityManagerFactoryBuilder,
+    ): LocalContainerEntityManagerFactoryBean {
+        return builder
+            .dataSource(dataSource)
+            .packages("com.example.multidatasourceexample.domain.mysql") // MySQL 엔터티 패키지
+            .persistenceUnit("mysql")
+            .properties(
+                mapOf(Pair("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect"))
+            )
+            .build()
     }
 
     @Primary
     @Bean("mysqlTransactionManager")
     fun transactionManager(
-        @Qualifier("mysqlEntityManagerFactory") entityManagerFactory: EntityManagerFactory,
+        @Qualifier("mysqlEntityManagerFactory") entityManagerFactory: LocalContainerEntityManagerFactoryBean,
     ): PlatformTransactionManager {
-        return JpaTransactionManager(entityManagerFactory)
+        return JpaTransactionManager(entityManagerFactory.`object`!!)
     }
 }

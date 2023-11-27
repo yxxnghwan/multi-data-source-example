@@ -3,8 +3,10 @@ package com.example.multidatasourceexample.config
 import jakarta.persistence.EntityManagerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.jdbc.DataSourceBuilder
+import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
@@ -24,27 +26,36 @@ import javax.sql.DataSource
 )
 class PostgresqlDataSourceConfig {
 
-    @Bean("postgresqlDataSource")
+    @Bean("postgresqlDataSourceProperties")
     @ConfigurationProperties(prefix = "spring.datasource.postgresql")
-    fun dataSource(): DataSource {
-        return DataSourceBuilder.create().build()
+    fun postgresqlDataSourceProperties(): DataSourceProperties {
+        return DataSourceProperties()
+    }
+
+    @Bean("postgresqlDataSource")
+    fun postgresqlDataSource(): DataSource {
+        return postgresqlDataSourceProperties().initializeDataSourceBuilder().build()
     }
 
     @Bean("postgresqlEntityManagerFactory")
-    fun entityManagerFactory(
+    fun postgresqlEntityManagerFactory(
         @Qualifier("postgresqlDataSource") dataSource: DataSource,
-    ): EntityManagerFactory {
-        val em = LocalContainerEntityManagerFactoryBean()
-        em.dataSource = dataSource
-        em.setPackagesToScan("com.example.multidatasourceexample.domain.postgresql")
-        em.jpaVendorAdapter = HibernateJpaVendorAdapter()
-        return em.`object`!!
+        builder: EntityManagerFactoryBuilder,
+    ): LocalContainerEntityManagerFactoryBean {
+        return builder
+            .dataSource(dataSource)
+            .packages("com.example.multidatasourceexample.domain.postgresql") // PostgreSQL 엔터티 패키지
+            .persistenceUnit("postgresql")
+            .properties(
+                mapOf(Pair("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect"))
+            )
+            .build()
     }
 
     @Bean("postgresqlTransactionManager")
-    fun transactionManager(
-        @Qualifier("postgresqlEntityManagerFactory") entityManagerFactory: EntityManagerFactory,
+    fun postgresqlTransactionManager(
+        @Qualifier("postgresqlEntityManagerFactory") entityManagerFactory: LocalContainerEntityManagerFactoryBean,
     ): PlatformTransactionManager {
-        return JpaTransactionManager(entityManagerFactory)
+        return JpaTransactionManager(entityManagerFactory.`object`!!)
     }
 }
