@@ -1,17 +1,50 @@
 spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 1000
+        query:
+          in_clause_parameter_padding: true
+    open-in-view: false
+
   datasource:
     postgresql:
       dialect: org.hibernate.dialect.PostgreSQLDialect
-      url: jdbc:postgresql://localhost:55432/example
-      username: example_user
-      password: example_password
-      driver-class-name: org.postgresql.Driver
+      main:
+        type: com.zaxxer.hikari.HikariDataSource
+        jdbc-url: jdbc:postgresql://localhost:55432/example
+        username: example_user
+        password: example_password
+        driver-class-name: org.postgresql.Driver
+        connectionTimeout: 10000
+        validationTimeout: 1000
+      readonly:
+        type: com.zaxxer.hikari.HikariDataSource
+        jdbc-url: jdbc:postgresql://localhost:55432/example
+        username: example_user
+        password: example_password
+        driver-class-name: org.postgresql.Driver
+        connectionTimeout: 10000
+        validationTimeout: 1000
     mysql:
-      dialect: org.hibernate.dialect.MySQL8Dialect
-      url: jdbc:mysql://localhost:53306/example
-      username: root
-      password: root
-      driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    hibernate:
-      ddl-auto: none
+      dialect: org.hibernate.dialect.MySQLDialect
+      main:
+        type: com.zaxxer.hikari.HikariDataSource
+        jdbc-url: jdbc:mysql://localhost:53306/example
+        connection-timeout: 10000
+        validation-timeout: 1000
+        username: root
+        password: root
+        driver-class-name: com.mysql.cj.jdbc.Driver
+      readonly:
+        type: com.zaxxer.hikari.HikariDataSource
+        jdbc-url: jdbc:mysql://localhost:53306/example
+        connection-timeout: 10000
+        validation-timeout: 1000
+        username: root
+        password: root
+        driver-class-name: com.mysql.cj.jdbc.Driver
